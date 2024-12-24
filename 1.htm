@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>クイズサイト</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+        }
+        .question-container {
+            margin-bottom: 20px;
+        }
+        .question {
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .choice-btn {
+            padding: 15px;
+            font-size: 18px;
+            background-color: #fff;
+            border: 2px solid #ccc;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+        }
+        .choice-btn:hover {
+            background-color: #f0f0f0;
+        }
+        #result {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .answer-display {
+            margin-bottom: 10px;
+        }
+        #question-number {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>クイズ</h1>
+
+<div id="quiz-container">
+    <div id="question-number"></div>
+    <div class="question-container" id="question-container">
+        <!-- 問題がここに表示されます -->
+    </div>
+</div>
+
+<div id="result">
+    <h2>結果</h2>
+    <p id="correct-answers">正解数: 0/10</p>
+    <div id="answers-details">
+        <!-- ユーザーの回答と正解がここに表示されます -->
+    </div>
+</div>
+
+<script>
+    // 問題のデータ
+    const questions = [
+    { question: "日本の内閣制度において、内閣総理大臣は誰によって指名されるか？", choices: ["国会", "天皇", "最高裁判所", "民主党"], answer: "国会" },
+    { question: "日本の現在の消費税率は何パーセントか？", choices: ["8%", "10%", "12%", "15%"], answer: "10%" },
+    { question: "日本の「三権分立」に含まれる権力はどれか？", choices: ["行政権、立法権、司法権", "行政権、経済権、立法権", "経済権、司法権、立法権", "行政権、司法権、金融権"], answer: "行政権、立法権、司法権" },
+    { question: "GDPとは何の略か？", choices: ["Giga Distribution Power", "Gross Domestic Product", "Government Demand Product", "Global Data Process"], answer: "Gross Domestic Product" },
+    { question: "日本の中央銀行はどれか？", choices: ["日本銀行", "みずほ銀行", "三菱UFJ銀行", "野村銀行"], answer: "日本銀行" },
+    { question: "日本の経済において、日銀が金融政策を実行するための主な手段はどれか？", choices: ["金利政策", "株式購入", "税制改革", "外貨取引"], answer: "金利政策" },
+    { question: "日本における最も古い政治制度はどれか？", choices: ["明治憲法", "大正憲法", "日本国憲法", "天皇制"], answer: "明治憲法" },
+    { question: "経済成長率を示す指標のひとつである「名目GDP」とは何か？", choices: ["経済成長を物価変動を考慮せずに測る", "物価変動を考慮したGDP", "公共投資を反映したGDP", "国内の総貨幣量"], answer: "経済成長を物価変動を考慮せずに測る" },
+    { question: "日本の「消費税」が導入された年はいつか？", choices: ["1989年", "1995年", "2000年", "2010年"], answer: "1989年" },
+    { question: "アメリカ合衆国の最高法規である「アメリカ合衆国憲法」の制定年はいつか？", choices: ["1776年", "1787年", "1801年", "1820年"], answer: "1787年" },
+    { question: "日本の現行憲法が施行された年はいつか？", choices: ["1945年", "1947年", "1950年", "1960年"], answer: "1947年" },
+    { question: "アメリカの大統領は何年ごとに選ばれるか？", choices: ["4年", "6年", "8年", "12年"], answer: "4年" },
+    { question: "日本の最低賃金は誰によって決定されるか？", choices: ["労働基準監督署", "日本銀行", "都道府県知事", "経済産業省"], answer: "都道府県知事" },
+    { question: "日本の財政赤字の原因のひとつはどれか？", choices: ["消費税率の引き上げ", "社会保障支出の増加", "輸出の減少", "株式市場の低迷"], answer: "社会保障支出の増加" },
+    { question: "ヨーロッパ連合(EU)の本部がある都市はどこか？", choices: ["ブリュッセル", "パリ", "ロンドン", "ベルリン"], answer: "ブリュッセル" },
+];
+
+
+    // 問題をランダムに選択
+    const selectedQuestions = [];
+    while (selectedQuestions.length < 10) {
+        const index = Math.floor(Math.random() * questions.length);
+        if (!selectedQuestions.includes(index)) {
+            selectedQuestions.push(index);
+        }
+    }
+
+    let currentQuestionIndex = 0;
+    let userAnswers = [];
+
+    // 現在の問題番号を表示する関数
+    function updateQuestionNumber() {
+        const questionNumberElement = document.getElementById("question-number");
+        questionNumberElement.textContent = `問題 ${currentQuestionIndex + 1} / 10`;
+    }
+
+    // クイズの問題を表示する関数
+    function loadQuestion() {
+        const question = questions[selectedQuestions[currentQuestionIndex]];
+        const questionContainer = document.getElementById("question-container");
+        
+        // 選択肢をランダムに並べ替え
+        const shuffledChoices = [...question.choices];
+        shuffleArray(shuffledChoices);
+
+        questionContainer.innerHTML = `
+            <div class="question">${question.question}</div>
+            <div class="choices">
+                ${shuffledChoices.map(choice => `
+                    <button class="choice-btn" onclick="selectAnswer('${choice}')">${choice}</button>
+                `).join('')}
+            </div>
+        `;
+        updateQuestionNumber();
+    }
+
+    // ユーザーが答えを選んだときの処理
+    function selectAnswer(answer) {
+        console.log(`選択した答え: ${answer}`);
+        
+        const currentQuestion = questions[selectedQuestions[currentQuestionIndex]];
+        userAnswers.push(answer);
+        
+        // ここで選択した答えが正解かどうかを比較
+        if (answer === currentQuestion.answer) {
+            console.log("正解!");
+        } else {
+            console.log("不正解!");
+        }
+
+        if (currentQuestionIndex < selectedQuestions.length - 1) {
+            currentQuestionIndex++;
+            loadQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    // 結果を表示する関数
+    function showResult() {
+        let correctCount = 0;
+        const answersDetails = document.getElementById("answers-details");
+        answersDetails.innerHTML = "";
+
+        selectedQuestions.forEach((index, questionIndex) => {
+            const question = questions[index];
+            const userAnswer = userAnswers[questionIndex];
+
+            if (userAnswer === question.answer) {
+                correctCount++;
+            }
+
+            const answerDetail = document.createElement("div");
+            answerDetail.classList.add("answer-display");
+            answerDetail.innerHTML = `
+                <strong>問題${questionIndex + 1}:</strong> ${question.question}<br>
+                あなたの答え: ${userAnswer ? userAnswer : "未回答"}<br>
+                正解の答え: ${question.answer}<br><br>
+            `;
+            answersDetails.appendChild(answerDetail);
+        });
+
+        document.getElementById("correct-answers").innerText = `正解数: ${correctCount}/10`;
+        document.getElementById("result").style.display = "block";
+        document.getElementById("quiz-container").style.display = "none";
+    }
+
+    // 配列をランダムにシャッフルする関数
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]]; // 配列の要素を入れ替え
+        }
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
