@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>迷路ゲーム</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        #maze-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        #maze {
+            display: grid;
+            grid-template-columns: repeat(10, 30px); /* 10列 */
+            grid-template-rows: repeat(10, 30px);    /* 10行 */
+            gap: 1px;
+        }
+
+        .cell {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ccc;
+            background-color: white;
+        }
+
+        .wall {
+            background-color: black;
+        }
+
+        .player {
+            background-color: red;
+        }
+
+        .exit {
+            background-color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>迷路ゲーム</h1>
+    <div id="maze-container">
+        <div id="maze"></div>
+    </div>
+    <script>
+        // 迷路のデータ（1は壁、0は通路）
+        const mazeArray = [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 1, 0, 1, 0, 0, 1],
+            [1, 0, 1, 0, 1, 0, 0, 0, 1, 1],
+            [1, 0, 1, 0, 0, 0, 1, 0, 0, 1],
+            [1, 0, 0, 1, 1, 0, 1, 1, 0, 1],
+            [1, 1, 0, 0, 0, 0, 1, 1, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+            [1, 0, 0, 0, 0, 1, 1, 0, 0, 1],
+            [1, 0, 1, 1, 1, 0, 1, 0, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+        ];
+
+        // プレイヤーの初期位置
+        let playerPosition = { x: 1, y: 1 };
+        const initialPosition = { x: 1, y: 1 };  // 初期位置を保存
+
+        // 迷路を描画する関数
+        function drawMaze() {
+            const mazeElement = document.getElementById("maze");
+            mazeElement.innerHTML = "";  // 既存の内容をクリア
+
+            for (let row = 0; row < mazeArray.length; row++) {
+                for (let col = 0; col < mazeArray[row].length; col++) {
+                    const cell = document.createElement("div");
+                    cell.classList.add("cell");
+
+                    // 壁を描画
+                    if (mazeArray[row][col] === 1) {
+                        cell.classList.add("wall");
+                    }
+
+                    // プレイヤーの位置
+                    if (row === playerPosition.y && col === playerPosition.x) {
+                        cell.classList.add("player");
+                    }
+
+                    // 出口の位置（最終目標）
+                    if (row === 9 && col === 9) {
+                        cell.classList.add("exit");
+                    }
+
+                    mazeElement.appendChild(cell);
+                }
+            }
+        }
+
+        // プレイヤーを動かす関数
+        function movePlayer(direction) {
+            const newPosition = { ...playerPosition };
+
+            if (direction === "up") {
+                newPosition.y -= 1;
+            } else if (direction === "down") {
+                newPosition.y += 1;
+            } else if (direction === "left") {
+                newPosition.x -= 1;
+            } else if (direction === "right") {
+                newPosition.x += 1;
+            }
+
+            // 新しい位置が壁でない場合に移動
+            if (mazeArray[newPosition.y] && mazeArray[newPosition.y][newPosition.x] !== 1) {
+                playerPosition = newPosition;
+            }
+
+            // ゲームの終了条件（出口に到達したかどうか）
+            if (playerPosition.x === 9 && playerPosition.y === 9) {
+                alert("おめでとうございます！ 迷路クリア！");
+                playerPosition = { ...initialPosition };  // プレイヤーの位置を初期位置に戻す
+            }
+
+            drawMaze();
+        }
+
+        // キーボードの矢印キーで移動
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowUp") {
+                movePlayer("up");
+            } else if (e.key === "ArrowDown") {
+                movePlayer("down");
+            } else if (e.key === "ArrowLeft") {
+                movePlayer("left");
+            } else if (e.key === "ArrowRight") {
+                movePlayer("right");
+            }
+        });
+
+        // 最初の迷路描画
+        drawMaze();
+    </script>
+  </body>
+</html>
