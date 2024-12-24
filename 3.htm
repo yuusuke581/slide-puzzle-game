@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三目並べゲーム</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px); /* 3列 */
+            grid-template-rows: repeat(3, 100px);    /* 3行 */
+            gap: 5px;
+            justify-content: center;
+            margin: 20px auto;
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #ccc;
+            font-size: 36px;
+            cursor: pointer;
+            background-color: #f0f0f0;
+        }
+
+        .cell.taken {
+            pointer-events: none; /* すでに取られたセルにはクリックできない */
+        }
+
+        #status {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+
+        #reset-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>三目並べゲーム</h1>
+    <div id="status">プレイヤー 〇 のターン</div>
+    <div id="game-board"></div>
+    <button id="reset-button">リセット</button>
+
+    <script>
+        const boardSize = 3; // ボードのサイズ（3x3）
+        let currentPlayer = '〇'; // 最初のプレイヤーは〇
+        let gameBoard = Array(boardSize).fill().map(() => Array(boardSize).fill(null)); // 盤面
+
+        // ボードを描画する関数
+        function drawBoard() {
+            const boardElement = document.getElementById('game-board');
+            boardElement.innerHTML = ''; // 現在のボードをリセット
+
+            for (let row = 0; row < boardSize; row++) {
+                for (let col = 0; col < boardSize; col++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    if (gameBoard[row][col]) {
+                        cell.textContent = gameBoard[row][col];
+                        cell.classList.add('taken');
+                    }
+                    cell.addEventListener('click', () => handleCellClick(row, col));
+                    boardElement.appendChild(cell);
+                }
+            }
+        }
+
+        // セルがクリックされた時の処理
+        function handleCellClick(row, col) {
+            if (gameBoard[row][col] || checkWinner()) return; // セルがすでに埋まっている、またはゲーム終了後は何もしない
+
+            // 現プレイヤーの記号を配置
+            gameBoard[row][col] = currentPlayer;
+            drawBoard();
+
+            // 勝者判定
+            if (checkWinner()) {
+                document.getElementById('status').textContent = `プレイヤー ${currentPlayer} の勝ち！`;
+                return;
+            }
+
+            // 引き分け判定
+            if (gameBoard.flat().every(cell => cell !== null)) {
+                document.getElementById('status').textContent = "引き分け！";
+                return;
+            }
+
+            // ターン交代
+            currentPlayer = currentPlayer === '〇' ? '×' : '〇';
+            document.getElementById('status').textContent = `プレイヤー ${currentPlayer} のターン`;
+        }
+
+        // 勝者判定の関数
+        function checkWinner() {
+            // 横、縦、斜めのラインをチェック
+            for (let row = 0; row < boardSize; row++) {
+                if (gameBoard[row][0] && gameBoard[row][0] === gameBoard[row][1] && gameBoard[row][1] === gameBoard[row][2]) {
+                    return true;
+                }
+            }
+
+            for (let col = 0; col < boardSize; col++) {
+                if (gameBoard[0][col] && gameBoard[0][col] === gameBoard[1][col] && gameBoard[1][col] === gameBoard[2][col]) {
+                    return true;
+                }
+            }
+
+            // 斜めのチェック（左上から右下）
+            if (gameBoard[0][0] && gameBoard[0][0] === gameBoard[1][1] && gameBoard[1][1] === gameBoard[2][2]) {
+                return true;
+            }
+
+            // 斜めのチェック（右上から左下）
+            if (gameBoard[0][2] && gameBoard[0][2] === gameBoard[1][1] && gameBoard[1][1] === gameBoard[2][0]) {
+                return true;
+            }
+
+            return false;
+        }
+
+        // ゲームをリセットする関数
+        function resetGame() {
+            gameBoard = Array(boardSize).fill().map(() => Array(boardSize).fill(null));
+            currentPlayer = '〇';
+            document.getElementById('status').textContent = `プレイヤー ${currentPlayer} のターン`;
+            drawBoard();
+        }
+
+        // リセットボタンにイベントを追加
+        document.getElementById('reset-button').addEventListener('click', resetGame);
+
+        // 最初のゲームボードを描画
+        drawBoard();
+    </script>
+
+    <br><br><br>
+   
+</body>
+</html>
