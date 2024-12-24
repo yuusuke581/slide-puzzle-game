@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>スライドパズルゲーム</title>
+  <style>
+    /* CSS: ゲームのスタイル */
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    #game-board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-gap: 5px;
+      justify-content: center;
+      margin: 20px auto;
+      visibility: hidden; /* 初期状態ではボードを非表示 */
+    }
+
+    .tile {
+      width: 100px;
+      height: 100px;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 2em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .tile.empty {
+      background-color: #ddd; /* 空白タイル */
+      cursor: default;
+    }
+
+    #timer {
+      font-size: 1.5em;
+      margin: 10px 0;
+      color: #333;
+    }
+
+    button {
+      background-color: #008CBA;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #005f73;
+    }
+
+    #start-button {
+      margin: 20px auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>タイルスライドパズル</h1>
+  <div id="timer">経過時間: 0秒</div>
+  <div id="game-board"></div>
+  <p id="message"></p>
+  <button id="start-button" onclick="startGame()">ゲームスタート</button>
+  <button id="reset-button" onclick="resetGame()" style="display: none;">リセット</button>
+
+  <script>
+    // JavaScript: ゲームの動作
+    const board = document.getElementById('game-board');
+    const message = document.getElementById('message');
+    const timerDisplay = document.getElementById('timer');
+    const startButton = document.getElementById('start-button');
+    const resetButton = document.getElementById('reset-button');
+    let tiles = [];
+    const size = 3; // 3x3パズル
+    let timer; // タイマーID
+    let seconds = 0; // 経過時間
+
+    // ゲームを初期化する関数
+    function initGame() {
+      tiles = Array.from({ length: size * size }, (_, i) => i + 1); // 1から9までの数字
+      tiles[tiles.length - 1] = null; // 最後のタイルを空白にする
+      shuffleTiles(); // タイルをシャッフル
+      renderBoard();
+    }
+
+    // タイルをシャッフルする関数
+    function shuffleTiles() {
+      for (let i = tiles.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+      }
+    }
+
+    // ゲームボードを表示する関数
+    function renderBoard() {
+      board.innerHTML = ''; // ボードをクリア
+      tiles.forEach((tile, index) => {
+        const tileElement = document.createElement('div');
+        tileElement.classList.add('tile');
+        if (tile === null) {
+          tileElement.classList.add('empty');
+        } else {
+          tileElement.textContent = tile;
+          tileElement.addEventListener('click', () => moveTile(index));
+        }
+        board.appendChild(tileElement);
+      });
+    }
+
+    // タイルを動かす関数（修正版）
+    function moveTile(index) {
+      const emptyIndex = tiles.indexOf(null);
+
+      // 同じ行にいるかどうかをチェック
+      const isSameRow = Math.floor(index / size) === Math.floor(emptyIndex / size);
+
+      // 上下隣のインデックスを判定
+      const isAdjacent = Math.abs(index - emptyIndex) === 1 || Math.abs(index - emptyIndex) === size;
+
+      if (isAdjacent && (isSameRow || Math.abs(index - emptyIndex) === size)) {
+        // タイルを入れ替える
+        [tiles[emptyIndex], tiles[index]] = [tiles[index], tiles[emptyIndex]];
+        renderBoard();
+        checkWin();
+      }
+    }
+
+    // ゲームクリアを判定する関数
+    function checkWin() {
+      const isWin = tiles.slice(0, -1).every((tile, i) => tile === i + 1);
+      if (isWin) {
+        clearInterval(timer); // タイマー停止
+        message.textContent = `おめでとう！パズル完成！ 経過時間: ${seconds}秒`;
+      } else {
+        message.textContent = '';
+      }
+    }
+
+    // ゲームをリセットする関数
+    function resetGame() {
+      clearInterval(timer); // タイマー停止
+      seconds = 0;
+      timerDisplay.textContent = '経過時間: 0秒';
+      message.textContent = '';
+      startButton.style.display = 'inline';
+      resetButton.style.display = 'none';
+      board.style.visibility = 'hidden';
+    }
+
+    // タイマーを開始する関数
+    function startTimer() {
+      clearInterval(timer); // 既存のタイマーをクリア
+      seconds = 0;
+      timerDisplay.textContent = '経過時間: 0秒';
+      timer = setInterval(() => {
+        seconds++;
+        timerDisplay.textContent = `経過時間: ${seconds}秒`;
+      }, 1000);
+    }
+
+    // ゲームスタート関数
+    function startGame() {
+      initGame();
+      startTimer();
+      startButton.style.display = 'none';
+      resetButton.style.display = 'inline';
+      board.style.visibility = 'visible'; // ボードを表示
+    }
+  </script>
+</body>
+</html>
+
